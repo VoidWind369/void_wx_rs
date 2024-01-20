@@ -19,7 +19,7 @@ impl WxSign {
         let signature = self.signature.clone().unwrap_or("".to_string());
         let token = "pamtest".to_string();
         let timestamp = self.timestamp.clone().unwrap_or("".to_string());
-        let nonce = self.nonce.unwrap_or("".to_string());
+        let nonce = self.nonce.clone().unwrap_or("".to_string());
         let mut vec = vec![token, timestamp, nonce];
         vec.sort();
         let mut hasher = Sha1::new();
