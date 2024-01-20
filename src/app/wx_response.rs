@@ -10,7 +10,7 @@ use crate::app::get_config;
 pub struct WxSign {
     pub signature: Option<String>,
     pub timestamp: Option<String>,
-    pub nonce: Option<i64>,
+    pub nonce: Option<String>,
     pub echostr: Option<String>,
 }
 
@@ -19,15 +19,17 @@ impl WxSign {
         let signature = self.signature.clone().unwrap_or("".to_string());
         let token = "pamtest";
         let timestamp = self.timestamp.clone().unwrap_or("".to_string());
-        let nonce = self.nonce.unwrap_or(0);
+        let nonce = self.nonce.unwrap_or("".to_string());
+        let mut vec = vec![token, timestamp, nonce];
+        vec.sort();
         let mut hasher = Sha1::new();
-        hasher.input_str(&format!("{token}{timestamp}{nonce}"));
+        hasher.input_str(&format!("{}{}{}", vec[0], vec[1], vec[2]));
         let sha1_sign = hasher.result_str();
         match signature.eq(&sha1_sign) {
             true => {
                 log_info!("sign success");
                 self.echostr.clone()
-            },
+            }
             false => {
                 log_error!("sign failed");
                 None
