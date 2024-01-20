@@ -35,7 +35,10 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         }
     }
     log_info!("{wx_send_text:?}");
-    Xml(wx_send_text)
+    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").replace("WxSendText", "xml")
+
+    // Xml(wx_send_text)
 }
 
 async fn sign(Query(res): Query<WxSign>) -> impl IntoResponse {

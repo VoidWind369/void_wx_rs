@@ -41,6 +41,7 @@ impl WxSign {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
+#[serde(rename = "xml")]
 pub struct WxResponse {
     pub to_user_name: Option<String>,
     pub from_user_name: Option<String>,
