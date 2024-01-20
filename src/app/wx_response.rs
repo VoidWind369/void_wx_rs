@@ -17,7 +17,7 @@ pub struct WxSign {
 impl WxSign {
     pub fn sign(&self) -> Option<String> {
         let signature = self.signature.clone().unwrap_or("".to_string());
-        let token = "pamtest";
+        let token = "pamtest".to_string();
         let timestamp = self.timestamp.clone().unwrap_or("".to_string());
         let nonce = self.nonce.unwrap_or("".to_string());
         let mut vec = vec![token, timestamp, nonce];
