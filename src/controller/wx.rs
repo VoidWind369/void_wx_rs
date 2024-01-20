@@ -1,4 +1,4 @@
-use axum::extract::Path;
+use axum::extract::{Path, Query};
 use axum::response::IntoResponse;
 use axum::Router;
 use axum::routing::*;
@@ -38,7 +38,8 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     Xml(wx_send_text)
 }
 
-async fn sign(Path(res): Path<WxSign>) -> impl IntoResponse {
+async fn sign(Query(res): Query<WxSign>) -> impl IntoResponse {
+    log_info!("{:?}", res);
     let mut str = String::new();
     if let Some(echo) = res.sign() {
         str = echo
