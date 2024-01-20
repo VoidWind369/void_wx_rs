@@ -24,8 +24,14 @@ impl WxSign {
         hasher.input_str(&format!("{token}{timestamp}{nonce}"));
         let sha1_sign = hasher.result_str();
         match signature.eq(&sha1_sign) {
-            true => self.echostr.clone(),
-            false => None
+            true => {
+                log_info!("sign success");
+                self.echostr.clone()
+            },
+            false => {
+                log_error!("sign failed");
+                None
+            }
         }
     }
 }

@@ -44,6 +44,7 @@ async fn sign(Query(res): Query<WxSign>) -> impl IntoResponse {
     if let Some(echo) = res.sign() {
         str = echo
     }
+    log_info!("{str}");
     str
 }
 
