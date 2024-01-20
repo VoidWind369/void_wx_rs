@@ -1,8 +1,34 @@
+use crypto::digest::Digest;
+use crypto::sha1::Sha1;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use crate::app::redis_util::redis_get_access_token;
 use crate::{log_error, log_info};
 use crate::app::get_config;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WxSign {
+    pub signature: Option<String>,
+    pub timestamp: Option<String>,
+    pub nonce: Option<i64>,
+    pub echostr: Option<String>,
+}
+
+impl WxSign {
+    pub fn sign(&self) -> Option<String> {
+        let signature = self.signature.clone().unwrap_or("".to_string());
+        let token = "pamtest";
+        let timestamp = self.timestamp.clone().unwrap_or("".to_string());
+        let nonce = self.nonce.unwrap_or(0);
+        let mut hasher = Sha1::new();
+        hasher.input_str(&format!("{token}{timestamp}{nonce}"));
+        let sha1_sign = hasher.result_str();
+        match signature.eq(&sha1_sign) {
+            true => self.echostr.clone(),
+            false => None
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]

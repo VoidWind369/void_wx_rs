@@ -19,3 +19,4 @@ reqwest = { version = "*", features = ["json", "serde_json"] }
 chrono = { version = "*", features = ["serde"] }
 redis = { version = "*", features = ["serde", "serde_json", "tokio", "futures", "futures-util"] }
 urlencoding = "*"
+rust-crypto = "*"

@@ -1,8 +1,9 @@
+use axum::extract::Path;
 use axum::response::IntoResponse;
 use axum::Router;
 use axum::routing::*;
 use axum_xml_up::Xml;
-use crate::app::{snipe, WxResponse, WxSendText};
+use crate::app::{snipe, WxResponse, WxSendText, WxSign};
 use crate::log_info;
 
 pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
@@ -37,7 +38,15 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     Xml(wx_send_text)
 }
 
+async fn sign(Path(res): Path<WxSign>) -> impl IntoResponse {
+    let mut str = String::new();
+    if let Some(echo) = res.sign() {
+        str = echo
+    }
+    str
+}
+
 pub async fn router(app_router: Router) -> Router {
     app_router
-        .route("/wx", post(wx))
+        .route("/wx", get(sign).post(wx))
 }
