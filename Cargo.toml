@@ -1,0 +1,21 @@
+[package]
+name = "void_wx_rs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "*", features = ["full"] }
+tower = { version = "*", features = ["full"] }
+tower-http = { version = "*", features = ["full"] }
+axum = { version = "*", features = ["json", "multipart", "tokio", "ws", "form", "original-uri", "query" ] }
+axum-xml-up = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+serde_yaml = "*"
+serde-xml-rs = "*"
+reqwest = { version = "*", features = ["json", "serde_json"] }
+chrono = { version = "*", features = ["serde"] }
+redis = { version = "*", features = ["serde", "serde_json", "tokio", "futures", "futures-util"] }
+urlencoding = "*"

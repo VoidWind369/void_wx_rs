@@ -1,0 +1,8 @@
+server_port: 9000
+server_url: http:://get.cocsnipe.top
+redis_url: 43.134.32.208:6379
+redis_username:
+redis_password: Z#2nTt98ve!Q#*RY
+redis_expire: 7200
+wx_appid: wx2e0947507bf0aa9f
+wx_secret: 80896047bf85cb92807c741e0dd92dbb
