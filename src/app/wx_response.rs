@@ -25,6 +25,7 @@ impl WxSign {
         let mut hasher = Sha1::new();
         hasher.input_str(&format!("{}{}{}", vec[0], vec[1], vec[2]));
         let sha1_sign = hasher.result_str();
+        log_info!("sha1_sign {sha1_sign}");
         match signature.eq(&sha1_sign) {
             true => {
                 log_info!("sign success");
