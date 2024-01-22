@@ -92,7 +92,7 @@ async fn get_access_token_from_server() -> Option<String> {
     match response {
         Ok(r) => {
             let res_str = r.json::<ResAccessToken>().await.unwrap();
-            log_info!("{res_str:?}");
+            log_info!("get_access_token_from_server {res_str:?}");
             res_str.access_token
         }
         Err(e) => {
@@ -106,6 +106,7 @@ pub async fn get_access_token() -> String {
     let in_redis = redis_get_access_token().await.unwrap_or(None);
     match in_redis {
         Some(access_token) => {
+            log_info!("redis access_token {}", &access_token);
             access_token
         }
         None => {
@@ -150,7 +151,7 @@ pub async fn send_create_menu() -> String {
             }
         ]
     });
-    let access_token = app::get_access_token().await;
+    let access_token = get_access_token().await;
     let url = format!("https://api.weixin.qq.com/cgi-bin/menu/create?access_token={}", access_token);
     let response = Client::new().post(url).json(&json).send().await;
     match response {
