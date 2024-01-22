@@ -1,9 +1,9 @@
-use axum::extract::{Path, Query};
+use axum::extract::Query;
 use axum::response::IntoResponse;
-use axum::Router;
+use axum::{Json, Router};
 use axum::routing::*;
 use axum_xml_up::Xml;
-use crate::app::{snipe, WxResponse, WxSendText, WxSign};
+use crate::app::{send_create_menu, snipe, WxResponse, WxSendText, WxSign};
 use crate::log_info;
 
 pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
@@ -15,7 +15,7 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             from_user_name: res.to_user_name,
             create_time: res.create_time,
             msg_type: Some("text".to_string()),
-            content: None,
+            content: Some("一个瑶瑶，两个瑶瑶。。。".to_string()),
         };
         if msg.eq("时间") {
             let times = snipe::ListTime::get().await;
@@ -41,6 +41,11 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     // Xml(wx_send_text)
 }
 
+async fn create_menu() -> impl IntoResponse {
+    let res = send_create_menu().await;
+    Json(res)
+}
+
 async fn sign(Query(res): Query<WxSign>) -> impl IntoResponse {
     log_info!("{:?}", res);
     let mut str = String::new();
@@ -54,4 +59,5 @@ async fn sign(Query(res): Query<WxSign>) -> impl IntoResponse {
 pub async fn router(app_router: Router) -> Router {
     app_router
         .route("/wx", get(sign).post(wx))
+        .route("/create_menu", get(create_menu))
 }

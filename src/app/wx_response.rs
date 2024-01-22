@@ -2,8 +2,9 @@ use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use crate::app::redis_util::redis_get_access_token;
-use crate::{log_error, log_info};
+use serde_json::json;
+use crate::app::redis_util::{redis_get_access_token, redis_set_access_token};
+use crate::{app, log_error, log_info};
 use crate::app::get_config;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -108,12 +109,14 @@ pub async fn get_access_token() -> String {
             access_token
         }
         None => {
-            get_access_token_from_server().await.unwrap_or("".to_string())
+            let token = get_access_token_from_server().await.unwrap_or("".to_string());
+            redis_set_access_token(token.clone()).await.unwrap_or(());
+            token
         }
     }
 }
 
-pub async fn send_text(wx_send_text: WxSendText) {
+pub async fn _send_text(wx_send_text: WxSendText) {
     let str = serde_xml_rs::to_string(&wx_send_text).expect("xml to string error");
     let response = Client::new().post("api.weixin.qq.com")
         .body(str).send().await;
@@ -126,4 +129,39 @@ pub async fn send_text(wx_send_text: WxSendText) {
             log_error!("Send Error {e}")
         }
     };
+}
+
+pub async fn send_create_menu() -> String {
+    let json = json!({
+        "button":[
+            {
+                "type":"view",
+                "name":"S盟系统",
+                "key":"https://cocsnipe.top"
+            },
+            {
+                "name":"指令",
+                "sub_button":[
+                {
+                    "type":"click",
+                    "name":"时间",
+                    "key":"time"
+                }]
+            }
+        ]
+    });
+    let access_token = app::get_access_token().await;
+    let url = format!("https://api.weixin.qq.com/cgi-bin/menu/create?access_token={}", access_token);
+    let response = Client::new().post(url).json(&json).send().await;
+    match response {
+        Ok(r) => {
+            let res_str = r.text().await.unwrap_or("Created".to_string());
+            log_info!("{}", res_str.clone());
+            res_str
+        }
+        Err(e) => {
+            log_error!("Create Error {e}");
+            format!("Create Error {e}")
+        }
+    }
 }
