@@ -111,6 +111,7 @@ pub async fn get_access_token() -> String {
         }
         None => {
             let token = get_access_token_from_server().await.unwrap_or("".to_string());
+            log_info!("get_access_token {}", &token);
             redis_set_access_token(token.clone()).await.unwrap_or(());
             token
         }
@@ -138,7 +139,7 @@ pub async fn send_create_menu() -> String {
             {
                 "type":"view",
                 "name":"S盟系统",
-                "key":"https://cocsnipe.top"
+                "url":"https://cocsnipe.top"
             },
             {
                 "name":"指令",
