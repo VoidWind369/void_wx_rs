@@ -4,7 +4,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::app::redis_util::{redis_get_access_token, redis_set_access_token};
-use crate::{app, log_error, log_info};
+use crate::{log_error, log_info};
 use crate::app::get_config;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
