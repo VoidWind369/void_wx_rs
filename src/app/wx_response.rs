@@ -154,6 +154,7 @@ pub async fn send_create_menu() -> String {
     });
     let access_token = get_access_token().await;
     let url = format!("https://api.weixin.qq.com/cgi-bin/menu/create?access_token={}", access_token);
+    log_info!("menu url {url}");
     let response = Client::new().post(url).json(&json).send().await;
     match response {
         Ok(r) => {
