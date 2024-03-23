@@ -1,5 +1,6 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use crate::log_info;
 
 type ListTimes = Vec<ListTime>;
@@ -16,10 +17,27 @@ impl ListTime {
         set_xin().await;
         let response = Client::new()
             .get("http://get.cocsnipe.top/listTime".to_string())
-            .send()
-            .await
-            .unwrap();
+            .send().await.unwrap();
         response.json::<ListTimes>().await.expect("List Time Failed")
+    }
+
+    pub async fn get_time(time_id: u64) -> Self {
+        let response = Client::new()
+            .get(format!("http://get.cocsnipe.top/getTime/{}", time_id))
+            .send().await.unwrap();
+        response.json::<Self>().await.expect("Get Time Failed")
+    }
+
+    pub async fn set_time(time_id: u64, time: &str) -> String {
+        let json = json!({
+            "id": time_id,
+            "time": time
+        });
+        let response = Client::new()
+            .post("http://get.cocsnipe.top/setTime")
+            .json(&json)
+            .send().await.unwrap();
+        response.json::<String>().await.expect("Set Time Failed")
     }
 
     pub async fn format_time(&self) -> String {

@@ -41,6 +41,33 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     // Xml(wx_send_text)
 }
 
+pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+    log_info!("{:?}" ,res);
+    let mut wx_send_text = WxSendText::new();
+    if let Some(msg) = res.content {
+        wx_send_text = WxSendText {
+            to_user_name: res.from_user_name,
+            from_user_name: res.to_user_name,
+            create_time: res.create_time,
+            msg_type: Some("text".to_string()),
+            content: Some("啊～不要。。。".to_string()),
+        };
+        if msg.eq("fwa") {
+            let time = snipe::ListTime::get_time(81).await;
+            let str = time.format_time().await;
+            wx_send_text.content = Some(str);
+        }
+        if msg.eq("fwa#") {
+            let time_str = msg.split("#").collect::<Vec<&str>>();
+            let time = snipe::ListTime::set_time(81, time_str[1]).await;
+            wx_send_text.content = Some(time);
+        }
+    }
+    log_info!("{wx_send_text:?}");
+    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").replace("WxSendText", "xml")
+}
+
 async fn create_menu() -> impl IntoResponse {
     let res = send_create_menu().await;
     Json(res)
@@ -59,5 +86,6 @@ async fn sign(Query(res): Query<WxSign>) -> impl IntoResponse {
 pub async fn router(app_router: Router) -> Router {
     app_router
         .route("/wx", get(sign).post(wx))
+        .route("/cn", get(sign).post(cn))
         .route("/create_menu", get(create_menu))
 }
