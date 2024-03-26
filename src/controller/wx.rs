@@ -45,7 +45,7 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
 pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     // a211f6ccb1d1339f3bf89506ddf90f90
     log_info!("{:?}" ,&res);
-    let from_user_name = res.clone().to_user_name.unwrap_or("none".to_string());
+    let from_user_name = res.clone().from_user_name.unwrap_or("none".to_string());
     let mut wx_send_text = WxSendText::new();
     if let Some(msg) = res.content {
         wx_send_text = WxSendText {
@@ -59,7 +59,8 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             let mut strs = String::from("【指令】");
             let acc = account::search_acc(&from_user_name, 1).await;
             let vec = match acc.r#type {
-                Some(1) => vec!["加盟#标签", "待审核", "审核#标签", "fwa", "fwa#"],
+                Some(1) => vec!["加盟#标签", "更新#标签", "信息", "待审核", "审核#标签", "fwa", "fwa#"],
+                Some(2) => vec!["更新#标签", "信息", "fwa"],
                 _ => vec!["加盟#标签", "fwa"]
             };
             for ve in vec {
@@ -76,13 +77,39 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             };
             wx_send_text.content = Some(accounts);
         }
+        if msg.contains("更新#") {
+            let tag = msg.split("#").collect::<Vec<&str>>()[1];
+            let accounts = match tag.len() {
+                0..=3 => { "标签错误".to_string() }
+                _ => { account::up_acc(&from_user_name, tag).await }
+            };
+            wx_send_text.content = Some(accounts);
+        }
+        if msg.eq("信息") {
+            let mut strs = String::from("【信息】");
+            let acc = account::search_acc(&from_user_name, 1).await;
+            strs.push_str("\r");
+            strs.push_str(&format!("微信: {}", acc.name.unwrap_or_default()));
+            strs.push_str("\r");
+            strs.push_str(&format!("标签: {}", acc.tag.unwrap_or_default()));
+            strs.push_str("\r");
+            strs.push_str(&format!("部落: {}", acc.clan_name.unwrap_or_default()));
+            wx_send_text.content = Some(strs);
+        }
         if msg.eq("待审核") {
             let accounts = account::list_wait_acc(&from_user_name).await;
             let mut strs = String::from("【待审核】");
             for acc in accounts {
-                let str = format!("{} | {}", acc.id.unwrap(), acc.name.unwrap());
+                let str = format!("【{}】 | {}", acc.id.unwrap(), acc.tag.unwrap());
                 strs.push_str("\n");
-                strs.push_str(&str)
+                strs.push_str("---------------");
+                strs.push_str("\n");
+                strs.push_str(&str);
+                strs.push_str("\n");
+                strs.push_str(&acc.clan_name.unwrap_or_default());
+                strs.push_str("\n");
+                strs.push_str(&acc.name.unwrap_or_default());
+                strs.push_str("\r\n");
             }
             wx_send_text.content = Some(strs);
         }

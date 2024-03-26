@@ -1,6 +1,6 @@
 use reqwest::{Client};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{json, Value};
 
 use crate::app::{Config, get_config};
 use crate::{log_error, log_info};
@@ -11,6 +11,8 @@ pub type SnipeAccounts = Vec<SnipeAccount>;
 pub struct SnipeAccount {
     pub id: Option<i64>,
     pub name: Option<String>,
+    pub tag: Option<String>,
+    pub clan_name: Option<String>,
     pub r#type: Option<i64>,
     pub status: Option<i64>,
     pub create_time: Option<String>,
@@ -25,15 +27,16 @@ pub async fn to_acc(name: &str, tag: &str) -> String {
     let json = json!({
         "name": name,
         "tag": tag,
-        "type": 2
+        "type": 2,
+        "status": 0
     });
     let response = Client::new().post(url)
         .json(&json).send().await;
     match response {
         Ok(re) => {
-            let r = re.text().await.unwrap();
-            if r.contains("1") {
-                "提交成功，等待管理审核".to_string()
+            let r = re.json::<Value>().await.unwrap();
+            if let Some(message) = r["message"].as_str() {
+                message.to_string()
             } else {
                 "警告，请检查是否重复提交".to_string()
             }
@@ -41,6 +44,35 @@ pub async fn to_acc(name: &str, tag: &str) -> String {
         Err(e) => {
             log_error!("{e}");
             "失败，请检查是否重复提交".to_string()
+        }
+    }
+}
+
+pub async fn up_acc(name: &str, tag: &str) -> String {
+    let config: Config = get_config().await;
+    let tag = format!("#{}", tag.replace("#", ""));
+    let url = format!("{}/oa_up", config.server_url.unwrap());
+    log_info!("请求 {}", &url);
+    let json = json!({
+        "name": name,
+        "tag": tag,
+        "type": 2,
+    });
+    let response = Client::new().post(url)
+        .json(&json).send().await;
+    match response {
+        Ok(re) => {
+            let r = re.json::<Value>().await.unwrap();
+            log_info!("{}", r);
+            if let Some(message) = r["message"].as_str() {
+                message.to_string()
+            } else {
+                "警告，没有变动".to_string()
+            }
+        }
+        Err(e) => {
+            log_error!("{e}");
+            "失败，系统错误".to_string()
         }
     }
 }
