@@ -1,6 +1,7 @@
 mod wx_response;
 mod redis_util;
 pub mod snipe;
+pub mod account;
 
 use redis::{Connection, RedisResult};
 use serde::{Deserialize, Serialize};
