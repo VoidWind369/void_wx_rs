@@ -58,10 +58,17 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         if msg.eq("指令") {
             let mut strs = String::from("【指令】");
             let acc = account::search_acc(&from_user_name, 1).await;
+            let mut base_vec = vec!["加盟#标签", "fwa/gfl", "查部落#标签", "对战日志#标签"];
             let vec = match acc.r#type {
-                Some(1) => vec!["加盟#标签", "更新#标签", "信息", "待审核", "审核#标签", "fwa", "fwa#"],
-                Some(2) => vec!["更新#标签", "信息", "fwa"],
-                _ => vec!["加盟#标签", "fwa"]
+                Some(1) => {
+                    base_vec.append(&mut vec!["更新#标签", "信息", "待审核", "审核#标签", "fwa/gfl#新时间"]);
+                    base_vec
+                }
+                Some(2) => {
+                    base_vec.append(&mut vec!["更新#标签", "信息", "fwa"]);
+                    base_vec
+                }
+                _ => base_vec
             };
             for ve in vec {
                 strs.push_str("\n");
@@ -88,11 +95,11 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         if msg.eq("信息") {
             let mut strs = String::from("【信息】");
             let acc = account::search_acc(&from_user_name, 1).await;
-            strs.push_str("\r");
+            strs.push_str("\n");
             strs.push_str(&format!("微信: {}", acc.name.unwrap_or_default()));
-            strs.push_str("\r");
+            strs.push_str("\n");
             strs.push_str(&format!("标签: {}", acc.tag.unwrap_or_default()));
-            strs.push_str("\r");
+            strs.push_str("\n");
             strs.push_str(&format!("部落: {}", acc.clan_name.unwrap_or_default()));
             wx_send_text.content = Some(strs);
         }
@@ -121,28 +128,50 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             };
             wx_send_text.content = Some(accounts);
         }
-        if msg.eq("fwa") {
+        if msg.eq("fwa") || msg.eq("fwl") || msg.eq("gfl") {
             let acc = account::search_acc(&from_user_name, 1).await;
+            let time_id = match msg.as_str() {
+                "fwa" => 81,
+                "fwl" => 82,
+                "gfl" => 83,
+                _ => 0
+            };
             let str = match acc.r#type {
                 Some(1..=2) => {
-                    let time = snipe::ListTime::get_time(81).await;
+                    let time = snipe::ListTime::get_time(time_id).await;
                     time.format_time().await
                 }
                 _ => { "未加盟".to_string() }
             };
             wx_send_text.content = Some(str);
         }
-        if msg.starts_with("fwa#") {
+        if msg.starts_with("fwa#") || msg.starts_with("fwl#") || msg.starts_with("gfl#") {
             let acc = account::search_acc(&from_user_name, 1).await;
             let time_str = msg.split("#").collect::<Vec<&str>>();
+            let time_id = match time_str[0] {
+                "fwa" => 81,
+                "fwl" => 82,
+                "gfl" => 83,
+                _ => 0
+            };
             let text = match acc.r#type {
                 Some(1) => {
                     let fmt_time = time_str[1].replace("：", ":");
-                    snipe::ListTime::set_time(81, &fmt_time).await
+                    snipe::ListTime::set_time(time_id, &fmt_time).await
                 }
                 _ => "无权限".to_string()
             };
             wx_send_text.content = Some(text);
+        }
+        if msg.starts_with("查部落#") {
+            let tag = msg.split("#").collect::<Vec<&str>>();
+            let clan_info = account::coc_clan_info(tag[1]).await;
+            wx_send_text.content = Some(clan_info);
+        }
+        if msg.starts_with("对战日志#") {
+            let tag = msg.split("#").collect::<Vec<&str>>();
+            let clan_info = account::coc_war_log(tag[1]).await;
+            wx_send_text.content = Some(clan_info);
         }
     }
     log_info!("{wx_send_text:?}");
