@@ -24,7 +24,7 @@ pub async fn get_config() -> Config {
     let mut yaml_file = tokio::fs::File::open("config.yaml").await.expect("read file error");
     let mut yaml_str = String::new();
     yaml_file.read_to_string(&mut yaml_str).await.expect("read str error");
-    serde_yaml::from_str::<Config>(yaml_str.as_str()).expect("config error")
+    serde_yml::from_str::<Config>(yaml_str.as_str()).expect("config error")
 }
 
 pub async fn get_redis_conn() -> RedisResult<Connection> {
