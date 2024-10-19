@@ -1,10 +1,9 @@
-use axum::{Json, Router};
-use axum::extract::Query;
 use axum::response::IntoResponse;
 use axum::routing::*;
+use axum::{Json, Router};
 use axum_xml_up::Xml;
 
-use crate::app::{account, send_create_menu, snipe, WxResponse, WxSendText, WxSign};
+use crate::app::{send_create_menu, snipe, WxResponse, WxSendText};
 use crate::controller::sign;
 use crate::log_info;
 
