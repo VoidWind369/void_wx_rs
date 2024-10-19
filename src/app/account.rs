@@ -145,7 +145,7 @@ pub async fn join_acc(id: i64, admin_name: &str) -> String {
 
 pub async fn coc_clan_info(tag: &str) -> String {
     let config: Config = get_config().await;
-    let url = format!("{}/coc_clan_info/{tag}", config.server_url.unwrap());
+    let url = format!("{}/coc/clan_info/{tag}", config.server_url.unwrap());
     log_info!("请求 {}", &url);
     let response = Client::new().get(url).send().await;
     response.unwrap().json::<String>().await.unwrap_or_default()
@@ -153,7 +153,7 @@ pub async fn coc_clan_info(tag: &str) -> String {
 
 pub async fn coc_war_log(tag: &str) -> String {
     let config: Config = get_config().await;
-    let url = format!("{}/coc_war_log/{tag}", config.server_url.unwrap());
+    let url = format!("{}/coc/war_log/{tag}", config.server_url.unwrap());
     log_info!("请求 {}", &url);
     let response = Client::new().get(url).send().await;
     response.unwrap().json::<String>().await.unwrap_or_default()
