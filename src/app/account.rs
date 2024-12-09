@@ -153,7 +153,7 @@ pub async fn coc_clan_info(tag: &str) -> String {
 
 pub async fn coc_clans_info(name: &str, limit: &str) -> String {
     let config: Config = get_config().await;
-    let url = format!("{}/coc/clans_info/{name}{limit}", config.server_url.unwrap());
+    let url = format!("{}/coc/clans_info/{name}/{limit}", config.server_url.unwrap());
     log_info!("请求 {}", &url);
     let response = Client::new().get(url).send().await;
     response.unwrap().json::<String>().await.unwrap_or_default()
