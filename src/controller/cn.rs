@@ -23,7 +23,13 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         if msg.eq("指令") {
             let mut strs = String::from("【指令】");
             let acc = account::search_acc(&from_user_name, 1).await;
-            let mut base_vec = vec!["加盟#标签", "fwa/gfl", "查部落#标签", "对战日志#标签"];
+            let mut base_vec = vec![
+                "加盟#标签",
+                "fwa/gfl",
+                "查部落#标签",
+                "搜部落#名称#条目",
+                "对战日志#标签",
+            ];
             let vec = match acc.r#type {
                 Some(1) => {
                     base_vec.append(&mut vec![
