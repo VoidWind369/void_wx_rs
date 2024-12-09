@@ -1,6 +1,6 @@
 use axum::response::IntoResponse;
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 use axum_xml_up::Xml;
 
 use crate::app::{account, snipe, WxResponse, WxSendText};
@@ -9,7 +9,7 @@ use crate::log_info;
 
 pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     // a211f6ccb1d1339f3bf89506ddf90f90
-    log_info!("{:?}" ,&res);
+    log_info!("{:?}", &res);
     let from_user_name = res.clone().from_user_name.unwrap_or("none".to_string());
     let mut wx_send_text = WxSendText::new();
     if let Some(msg) = res.content {
@@ -26,14 +26,20 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             let mut base_vec = vec!["加盟#标签", "fwa/gfl", "查部落#标签", "对战日志#标签"];
             let vec = match acc.r#type {
                 Some(1) => {
-                    base_vec.append(&mut vec!["更新#标签", "信息", "待审核", "审核#标签", "fwa/gfl#新时间"]);
+                    base_vec.append(&mut vec![
+                        "更新#标签",
+                        "信息",
+                        "待审核",
+                        "审核#标签",
+                        "fwa/gfl#新时间",
+                    ]);
                     base_vec
                 }
                 Some(2) => {
                     base_vec.append(&mut vec!["更新#标签", "信息", "fwa"]);
                     base_vec
                 }
-                _ => base_vec
+                _ => base_vec,
             };
             for ve in vec {
                 strs.push_str("\n");
@@ -44,16 +50,16 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         if msg.contains("加盟#") {
             let tag = msg.split("#").collect::<Vec<&str>>()[1];
             let accounts = match tag.len() {
-                0..=3 => { "标签错误".to_string() }
-                _ => { account::to_acc(&from_user_name, tag).await }
+                0..=3 => "标签错误".to_string(),
+                _ => account::to_acc(&from_user_name, tag).await,
             };
             wx_send_text.content = Some(accounts);
         }
         if msg.contains("更新#") {
             let tag = msg.split("#").collect::<Vec<&str>>()[1];
             let accounts = match tag.len() {
-                0..=3 => { "标签错误".to_string() }
-                _ => { account::up_acc(&from_user_name, tag).await }
+                0..=3 => "标签错误".to_string(),
+                _ => account::up_acc(&from_user_name, tag).await,
             };
             wx_send_text.content = Some(accounts);
         }
@@ -85,11 +91,11 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             }
             wx_send_text.content = Some(strs);
         }
-        if msg.contains("审核#") {
+        if msg.starts_with("审核#") {
             let id = msg.split("#").collect::<Vec<&str>>()[1].parse::<i64>();
             let accounts = match id {
-                Ok(i) => { account::join_acc(i, &from_user_name).await }
-                Err(_) => { "无对象".to_string() }
+                Ok(i) => account::join_acc(i, &from_user_name).await,
+                Err(_) => "无对象".to_string(),
             };
             wx_send_text.content = Some(accounts);
         }
@@ -99,14 +105,14 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
                 "fwa" => 81,
                 "fwl" => 82,
                 "gfl" => 83,
-                _ => 0
+                _ => 0,
             };
             let str = match acc.r#type {
                 Some(1..=2) => {
                     let time = snipe::ListTime::get_time(time_id).await;
                     time.format_time().await
                 }
-                _ => { "未加盟".to_string() }
+                _ => "未加盟".to_string(),
             };
             wx_send_text.content = Some(str);
         }
@@ -117,14 +123,14 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
                 "fwa" => 81,
                 "fwl" => 82,
                 "gfl" => 83,
-                _ => 0
+                _ => 0,
             };
             let text = match acc.r#type {
                 Some(1) => {
                     let fmt_time = time_str[1].replace("：", ":");
                     snipe::ListTime::set_time(time_id, &fmt_time).await
                 }
-                _ => "无权限".to_string()
+                _ => "无权限".to_string(),
             };
             wx_send_text.content = Some(text);
         }
@@ -132,6 +138,13 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             let tag = msg.split("#").collect::<Vec<&str>>();
             let clan_info = account::coc_clan_info(tag[1]).await;
             wx_send_text.content = Some(clan_info);
+        }
+        if msg.starts_with("搜部落#") {
+            let mut split = msg.split('#');
+            let name = split.nth(1).unwrap();
+            let limit = split.nth(2).unwrap_or("10");
+            let info = account::coc_clans_info(name, limit).await;
+            wx_send_text.content = Some(info);
         }
         if msg.starts_with("对战日志#") {
             let tag = msg.split("#").collect::<Vec<&str>>();
@@ -141,10 +154,10 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     }
     log_info!("{wx_send_text:?}");
     let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").replace("WxSendText", "xml")
+    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+        .replace("WxSendText", "xml")
 }
 
 pub async fn router(app_router: Router) -> Router {
-    app_router
-        .route("/cn", get(sign).post(cn))
+    app_router.route("/cn", get(sign).post(cn))
 }
