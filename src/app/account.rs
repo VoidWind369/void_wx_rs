@@ -156,7 +156,7 @@ pub async fn coc_clans_info(name: &str, limit: &str) -> String {
     let url = format!("{}/coc/clans_info/{name}/{limit}", config.server_url.unwrap());
     log_info!("请求 {}", &url);
     let response = Client::new().get(url).send().await;
-    response.unwrap().json::<String>().await.unwrap_or_default()
+    response.unwrap().text().await.unwrap_or_default()
 }
 
 pub async fn coc_war_log(tag: &str) -> String {
