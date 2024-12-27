@@ -5,7 +5,7 @@ use axum_xml_up::Xml;
 
 use crate::app::{account, Config, WxResponse, WxSendText};
 use crate::controller::sign;
-use crate::log_info;
+use void_log::log_info;
 
 pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     let api = Config::get().await.api.unwrap_or_default();

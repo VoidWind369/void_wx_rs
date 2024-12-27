@@ -2,7 +2,7 @@ use reqwest::{Client};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::{log_error, log_info};
+use void_log::{log_error, log_info};
 use crate::app::Config;
 
 pub type SnipeAccounts = Vec<SnipeAccount>;

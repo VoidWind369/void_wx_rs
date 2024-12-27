@@ -1,5 +1,5 @@
 use crate::app::redis_util::{redis_get_access_token, redis_set_access_token};
-use crate::{log_error, log_info};
+use void_log::{log_error, log_info};
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use reqwest::Client;

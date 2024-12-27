@@ -1,6 +1,6 @@
 use crate::app::{Config, ConfigRedis};
 use redis::{Commands, Connection, RedisResult};
-use crate::log_info;
+use void_log::log_info;
 
 impl ConfigRedis {
     pub async fn get_redis_conn(&self) -> RedisResult<Connection> {
