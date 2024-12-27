@@ -1,36 +1,77 @@
-mod wx_response;
+pub mod account;
 mod redis_util;
 pub mod snipe;
-pub mod account;
+mod wx_response;
 
 use redis::{Connection, RedisResult};
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncReadExt;
 pub use wx_response::*;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub server_port: Option<i64>,
-    pub server_url: Option<String>,
-    pub redis_url: String,
-    pub redis_username: String,
-    pub redis_password: String,
-    pub redis_expire: i64,
-    pub wx_appid: String,
-    pub wx_secret: String,
+    pub server: Option<ConfigServer>,
+    pub redis: Option<ConfigRedis>,
+    pub wx: Option<ConfigApi>,
+    pub api: Option<ConfigApi>,
 }
 
-pub async fn get_config() -> Config {
-    let mut yaml_file = tokio::fs::File::open("config.yaml").await.expect("read file error");
-    let mut yaml_str = String::new();
-    yaml_file.read_to_string(&mut yaml_str).await.expect("read str error");
-    serde_yml::from_str::<Config>(yaml_str.as_str()).expect("config error")
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigServer {
+    pub path: Option<String>,
+    pub port: Option<u16>,
+    pub url: Option<String>,
 }
 
-pub async fn get_redis_conn() -> RedisResult<Connection> {
-    let config = get_config().await;
-    let password = urlencoding::encode("Z#2nTt98ve!Q#*RY");
-    let client = redis::Client::open(format!("redis://{}:{}@{}", config.redis_username, password, config.redis_url))?;
-    let con = client.get_connection()?;
-    Ok(con)
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigDatabase {
+    pub url: Option<String>,
+    pub name: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
+}
+
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigRedis {
+    pub url: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub expire: Option<i64>,
+}
+
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigApi {
+    pub ws: Option<String>,
+    pub url: Option<String>,
+    pub id: Option<String>,
+    pub account: Option<String>,
+    pub token: Option<String>,
+    pub secret: Option<String>,
+}
+
+impl Config {
+    pub async fn get() -> Self {
+        let mut yaml_file = tokio::fs::File::open("config.yaml")
+            .await
+            .expect("read file error");
+        let mut yaml_str = String::new();
+        yaml_file
+            .read_to_string(&mut yaml_str)
+            .await
+            .expect("read str error");
+        serde_yml::from_str(yaml_str.as_str()).expect("config error")
+    }
+
+    pub async fn get_redis_conn(self) -> RedisResult<Connection> {
+        let config = self.redis.unwrap_or_default();
+        let password = urlencoding::encode("Z#2nTt98ve!Q#*RY");
+        let client = redis::Client::open(format!(
+            "redis://{}:{}@{}",
+            &config.username.unwrap_or_default(),
+            password,
+            &config.url.unwrap_or_default()
+        ))?;
+        let con = client.get_connection()?;
+        Ok(con)
+    }
 }

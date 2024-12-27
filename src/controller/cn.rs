@@ -3,11 +3,12 @@ use axum::routing::get;
 use axum::Router;
 use axum_xml_up::Xml;
 
-use crate::app::{account, snipe, WxResponse, WxSendText};
+use crate::app::{account, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use crate::log_info;
 
 pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+    let api = Config::get().await.api.unwrap_or_default();
     // a211f6ccb1d1339f3bf89506ddf90f90
     log_info!("{:?}", &res);
     let from_user_name = res.clone().from_user_name.unwrap_or("none".to_string());
@@ -115,7 +116,7 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             };
             let str = match acc.r#type {
                 Some(1..=2) => {
-                    let time = snipe::ListTime::get_time(time_id).await;
+                    let time = api.get_time(time_id).await;
                     time.format_time().await
                 }
                 _ => "未加盟".to_string(),
@@ -134,7 +135,7 @@ pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
             let text = match acc.r#type {
                 Some(1) => {
                     let fmt_time = time_str[1].replace("：", ":");
-                    snipe::ListTime::set_time(time_id, &fmt_time).await
+                    api.set_time(time_id, &fmt_time).await
                 }
                 _ => "无权限".to_string(),
             };

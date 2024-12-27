@@ -1,11 +1,11 @@
+use crate::app::redis_util::{redis_get_access_token, redis_set_access_token};
+use crate::{log_error, log_info};
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use crate::app::redis_util::{redis_get_access_token, redis_set_access_token};
-use crate::{log_error, log_info};
-use crate::app::get_config;
+use crate::app::Config;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WxSign {
@@ -86,8 +86,12 @@ impl WxSendText {
 }
 
 async fn get_access_token_from_server() -> Option<String> {
-    let config = get_config().await;
-    let url = format!("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}", config.wx_appid, config.wx_secret);
+    let config = Config::get().await.wx.unwrap_or_default();
+    let url = format!(
+        "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}",
+        &config.id.unwrap_or_default(),
+        &config.secret.unwrap_or_default()
+    );
     let response = Client::new().get(url).send().await;
     match response {
         Ok(r) => {
@@ -110,9 +114,11 @@ pub async fn get_access_token() -> String {
             access_token
         }
         None => {
-            let token = get_access_token_from_server().await.unwrap_or("".to_string());
+            let token = get_access_token_from_server()
+                .await
+                .unwrap_or("".to_string());
             log_info!("get_access_token {}", &token);
-            redis_set_access_token(token.clone()).await.unwrap_or(());
+            redis_set_access_token(token.clone()).await;
             token
         }
     }
@@ -120,8 +126,11 @@ pub async fn get_access_token() -> String {
 
 pub async fn _send_text(wx_send_text: WxSendText) {
     let str = serde_xml_rs::to_string(&wx_send_text).expect("xml to string error");
-    let response = Client::new().post("api.weixin.qq.com")
-        .body(str).send().await;
+    let response = Client::new()
+        .post("api.weixin.qq.com")
+        .body(str)
+        .send()
+        .await;
     match response {
         Ok(r) => {
             let res_str = r.text().await.unwrap_or("No Search".to_string());
@@ -153,7 +162,10 @@ pub async fn send_create_menu() -> String {
         ]
     });
     let access_token = get_access_token().await;
-    let url = format!("https://api.weixin.qq.com/cgi-bin/menu/create?access_token={}", access_token);
+    let url = format!(
+        "https://api.weixin.qq.com/cgi-bin/menu/create?access_token={}",
+        access_token
+    );
     log_info!("menu url {url}");
     let response = Client::new().post(url).json(&json).send().await;
     match response {
