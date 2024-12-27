@@ -9,7 +9,7 @@ edition = "2021"
 tokio = { version = "1.42.0", features = ["full"] }
 tower = { version = "0.5.2", features = ["full"] }
 tower-http = { version = "0.6.2", features = ["full"] }
-axum = { version = "0.8.0-rc.1", features = ["json", "multipart", "tokio", "ws", "form", "original-uri", "query" ] }
+axum = { version = "0.7.9", features = ["json", "multipart", "tokio", "original-uri", "query"] }
 axum-xml-up = "0.2.0"
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.134"

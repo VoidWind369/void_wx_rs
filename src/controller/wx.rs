@@ -1,13 +1,10 @@
-use axum::response::IntoResponse;
-use axum::routing::*;
-use axum::{Json, Router};
+use axum::{response::IntoResponse, routing::*, Json, Router};
 use axum_xml_up::Xml;
-
 use crate::app::{send_create_menu, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use void_log::log_info;
 
-pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     let api = Config::get().await.api.unwrap_or_default();
     log_info!("{:?}", res);
     let mut wx_send_text = WxSendText::new();
@@ -32,7 +29,8 @@ pub async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     }
     log_info!("{wx_send_text:?}");
     let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").replace("WxSendText", "xml")
+    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+        .replace("WxSendText", "xml")
     // Xml(wx_send_text)
 }
 

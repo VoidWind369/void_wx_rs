@@ -1,13 +1,11 @@
-use axum::response::IntoResponse;
-use axum::routing::get;
-use axum::Router;
+use axum::{response::IntoResponse, routing::*, Router};
 use axum_xml_up::Xml;
 
 use crate::app::{account, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use void_log::log_info;
 
-pub async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     let api = Config::get().await.api.unwrap_or_default();
     // a211f6ccb1d1339f3bf89506ddf90f90
     log_info!("{:?}", &res);

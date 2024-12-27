@@ -1,10 +1,10 @@
 use crate::app::{Config, WxSign};
-use crate::*;
 use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Router;
 use tower_http::cors::CorsLayer;
+use void_log::log_info;
 
 mod cn;
 mod wx;
