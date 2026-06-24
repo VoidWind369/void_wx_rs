@@ -1,11 +1,11 @@
 use crate::app::redis_util::{redis_get_access_token, redis_set_access_token};
-use void_log::{log_error, log_info};
+use crate::app::Config;
 use crypto::digest::Digest;
 use crypto::sha1::Sha1;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use crate::app::Config;
+use void_log::{log_error, log_info};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WxSign {
@@ -124,23 +124,23 @@ pub async fn get_access_token() -> String {
     }
 }
 
-pub async fn _send_text(wx_send_text: WxSendText) {
-    let str = serde_xml_rs::to_string(&wx_send_text).expect("xml to string error");
-    let response = Client::new()
-        .post("api.weixin.qq.com")
-        .body(str)
-        .send()
-        .await;
-    match response {
-        Ok(r) => {
-            let res_str = r.text().await.unwrap_or("No Search".to_string());
-            log_info!("{res_str}")
-        }
-        Err(e) => {
-            log_error!("Send Error {e}")
-        }
-    };
-}
+// pub async fn _send_text(wx_send_text: WxSendText) {
+//     let str = serde_xml_rs::to_string(&wx_send_text).expect("xml to string error");
+//     let response = Client::new()
+//         .post("api.weixin.qq.com")
+//         .body(str)
+//         .send()
+//         .await;
+//     match response {
+//         Ok(r) => {
+//             let res_str = r.text().await.unwrap_or("No Search".to_string());
+//             log_info!("{res_str}")
+//         }
+//         Err(e) => {
+//             log_error!("Send Error {e}")
+//         }
+//     };
+// }
 
 pub async fn send_create_menu() -> String {
     let json = json!({
