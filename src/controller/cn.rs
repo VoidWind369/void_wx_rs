@@ -1,5 +1,5 @@
 use axum::{response::IntoResponse, routing::*, Router};
-use axum_xml_up::Xml;
+use axum_serde::Xml;
 
 use crate::app::{account, Config, WxResponse, WxSendText};
 use crate::controller::sign;
@@ -158,9 +158,10 @@ async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         }
     }
     log_info!("{wx_send_text:?}");
-    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-        .replace("WxSendText", "xml")
+    // let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    // xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+    //     .replace("WxSendText", "xml")
+    Xml(wx_send_text)
 }
 
 pub async fn router(app_router: Router) -> Router {

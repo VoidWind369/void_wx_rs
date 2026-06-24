@@ -1,5 +1,6 @@
-mod controller;
 mod app;
+mod controller;
+mod wx_api;
 
 #[tokio::main]
 async fn main() {

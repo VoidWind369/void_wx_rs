@@ -1,7 +1,7 @@
-use axum::{response::IntoResponse, routing::*, Json, Router};
-use axum_xml_up::Xml;
 use crate::app::{send_create_menu, Config, WxResponse, WxSendText};
 use crate::controller::sign;
+use axum::{response::IntoResponse, routing::*, Json, Router};
+use axum_serde::Xml;
 use void_log::log_info;
 
 async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
@@ -28,10 +28,10 @@ async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         }
     }
     log_info!("{wx_send_text:?}");
-    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-        .replace("WxSendText", "xml")
-    // Xml(wx_send_text)
+    // let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    // xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+    //     .replace("WxSendText", "xml")
+    Xml(wx_send_text)
 }
 
 async fn create_menu() -> impl IntoResponse {
