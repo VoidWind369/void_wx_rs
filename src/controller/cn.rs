@@ -5,10 +5,11 @@ use crate::app::{account, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use void_log::log_info;
 
-async fn cn(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+async fn cn(res: String) -> impl IntoResponse {
+    log_info!("{:?}", &res);
+    let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
     let api = Config::get().await.api.unwrap_or_default();
     // a211f6ccb1d1339f3bf89506ddf90f90
-    log_info!("{:?}", &res);
     let from_user_name = res.clone().from_user_name.unwrap_or("none".to_string());
     let mut wx_send_text = WxSendText::new();
     if let Some(msg) = res.content {
