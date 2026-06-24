@@ -4,9 +4,10 @@ use axum::{response::IntoResponse, routing::*, Json, Router};
 use axum_serde::Xml;
 use void_log::log_info;
 
-async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+async fn wx(res: String) -> impl IntoResponse {
     let api = Config::get().await.api.unwrap_or_default();
     log_info!("{:?}", res);
+    let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
     let mut wx_send_text = WxSendText::new();
     if let Some(msg) = res.content {
         wx_send_text = WxSendText {
@@ -28,10 +29,10 @@ async fn wx(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
         }
     }
     log_info!("{wx_send_text:?}");
-    // let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    // xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-    //     .replace("WxSendText", "xml")
-    Xml(wx_send_text)
+    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+        .replace("WxSendText", "xml")
+    // Xml(wx_send_text)
 }
 
 async fn create_menu() -> impl IntoResponse {

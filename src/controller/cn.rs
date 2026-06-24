@@ -159,10 +159,10 @@ async fn cn(res: String) -> impl IntoResponse {
         }
     }
     log_info!("{wx_send_text:?}");
-    // let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    // xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-    //     .replace("WxSendText", "xml")
-    Xml(wx_send_text)
+    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+        .replace("WxSendText", "xml")
+    // Xml(wx_send_text)
 }
 
 pub async fn router(app_router: Router) -> Router {
