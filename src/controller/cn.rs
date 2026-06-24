@@ -1,13 +1,13 @@
 use axum::{response::IntoResponse, routing::*, Router};
 use axum_serde::Xml;
 
-use crate::app::{self, account, Config, WxSendText};
+use crate::app::{account, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use void_log::log_info;
 
-async fn cn(Xml(res): Xml<app::Xml>) -> impl IntoResponse {
+async fn cn(res: String) -> impl IntoResponse {
     log_info!("{:?}", &res);
-    // let res = serde_xml_rs::from_str::<Xml>(&res).unwrap();
+    let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
     let api = Config::get().await.api.unwrap_or_default();
     // a211f6ccb1d1339f3bf89506ddf90f90
     let from_user_name = res.clone().from_user_name.unwrap_or("none".to_string());

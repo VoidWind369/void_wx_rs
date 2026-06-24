@@ -1,4 +1,4 @@
-use crate::app::{self, send_create_menu, Config, WxSendText};
+use crate::app::{send_create_menu, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use axum::{response::IntoResponse, routing::*, Json, Router};
 use axum_serde::Xml;
@@ -7,7 +7,7 @@ use void_log::log_info;
 async fn wx(res: String) -> impl IntoResponse {
     let api = Config::get().await.api.unwrap_or_default();
     log_info!("{:?}", res);
-    let res = serde_xml_rs::from_str::<app::Xml>(&res).unwrap();
+    let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
     let mut wx_send_text = WxSendText::new();
     if let Some(msg) = res.content {
         wx_send_text = WxSendText {
