@@ -1,6 +1,6 @@
 use rig::{
     client::{CompletionClient, Nothing},
-    completion::{Chat, Prompt},
+    completion::Chat,
     message::Message,
     providers::ollama::Client,
     tool::{ToolDyn, ToolError},
@@ -54,6 +54,7 @@ pub async fn agent_run(
         .preamble(&Preamble::read().await.unwrap_or_default().0)
         .append_preamble("未指明语言时的一切回答必须为中文")
         .tools(boxed_tools())
+        .max_tokens(4096)
         .build();
 
     agent.chat(prompt, &mut messages).await
