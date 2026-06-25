@@ -1,3 +1,4 @@
+use crate::agent::ollama;
 use crate::app::{send_create_menu, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use axum::{response::IntoResponse, routing::*, Json, Router};
@@ -6,26 +7,31 @@ use void_log::log_info;
 
 impl WxResponse {
     async fn wx_start(self) -> WxSendText {
-        let api = Config::get().await.api.unwrap_or_default();
         let mut wx_send_text = WxSendText::new();
         if let Some(msg) = self.content {
+            // ai模型回复
+            let content = ollama::agent_run(&msg).await;
             wx_send_text = WxSendText {
                 to_user_name: self.from_user_name,
                 from_user_name: self.to_user_name,
                 create_time: self.create_time,
                 msg_type: Some("text".to_string()),
-                content: Some("一个瑶瑶，两个瑶瑶。。。".to_string()),
+                content: Some(content),
             };
-            if msg.eq("时间") {
-                let times = api.get_list_time().await;
-                let mut times_str = String::from("【时间集】");
-                for time in times {
-                    let str = time.format_time().await;
-                    times_str.push_str("\n");
-                    times_str.push_str(&str)
-                }
-                wx_send_text.content = Some(times_str);
-            }
+
+            let content = ollama::agent_run(&msg).await;
+            wx_send_text.content = Some(content);
+            // let api = Config::get().await.api.unwrap_or_default();
+            // if msg.eq("时间") {
+            //     let times = api.get_list_time().await;
+            //     let mut times_str = String::from("【时间集】");
+            //     for time in times {
+            //         let str = time.format_time().await;
+            //         times_str.push_str("\n");
+            //         times_str.push_str(&str)
+            //     }
+            //     wx_send_text.content = Some(times_str);
+            // }
         }
         wx_send_text
     }

@@ -2,6 +2,7 @@ server:
   port: 9000
 api:
   url: https://www.cocsnipe.top
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjkzZWYwZDU1LTBhYjktNDMyNi1iYzY1LWQ3MDc0NWRjOWY3MCIsImlhdCI6MTc3MTMzNzY2Niwic3ViIjoiZGV2ZWxvcGVyL2ViNmU1NmVjLTZkYTYtZjBjZS1hNTExLWIwYjA3MGU0MWMwMiIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjQzLjE1Ni4xMjMuMTQxIl0sInR5cGUiOiJjbGllbnQifV19.fJh0njxCJ7FuMCpY-ehDFGqnITwwoO27mib2-qoSvTCw4kZxd1H5_oS5t2LgB7MWzBCQnPF_oUivfhD8d7bIfw
 redis:
   url: 43.134.32.208:6379
   username:
@@ -10,3 +11,5 @@ redis:
 wx:
   id: wx2e0947507bf0aa9f
   secret: 80896047bf85cb92807c741e0dd92dbb
+agent:
+  model: gemma4:12b

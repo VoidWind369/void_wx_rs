@@ -14,6 +14,7 @@ pub struct Config {
     pub redis: Option<ConfigRedis>,
     pub wx: Option<ConfigApi>,
     pub api: Option<ConfigApi>,
+    pub agent: Option<ConfigAgent>,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
@@ -49,6 +50,11 @@ pub struct ConfigApi {
     pub secret: Option<String>,
 }
 
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigAgent {
+    pub model: Option<String>,
+}
+
 impl Config {
     pub async fn get() -> Self {
         let mut yaml_file = tokio::fs::File::open("config.yaml")
@@ -60,6 +66,14 @@ impl Config {
             .await
             .expect("read str error");
         serde_yml::from_str(yaml_str.as_str()).expect("config error")
+    }
+
+    pub fn get_api(&self) -> ConfigApi {
+        self.api.clone().unwrap_or_default()
+    }
+
+    pub fn get_agent(&self) -> ConfigAgent {
+        self.agent.clone().unwrap_or_default()
     }
 
     pub async fn get_redis_conn(self) -> RedisResult<Connection> {
