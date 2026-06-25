@@ -4,6 +4,7 @@ use rig::{
     providers::ollama::Client,
     tool::ToolError,
 };
+use void_log::log_info;
 
 use crate::app::Config;
 
@@ -29,8 +30,13 @@ async fn get_tag_info(tag: String) -> Result<serde_json::Value, ToolError> {
 
 /// 查询智能体
 pub async fn agent_run(prompt: &str) -> String {
+    log_info!("调用智能体");
     let config_agent = Config::get().await.get_agent();
-    let client = Client::from_val(Nothing.into()).unwrap();
+    let client = Client::builder()
+        .api_key(Nothing)
+        .base_url("http://localhost:11434")
+        .build()
+        .unwrap();
     let agent = client.agent(config_agent.model.unwrap_or("qwen3:0.6b".to_string()))
         .preamble("你现在是一个负责查询和整理游戏《部落冲突》的数据助理，查询到的数据都是json格式，字段是英文的，当我以其他语言问你字段信息的时候，你需要将统计结果以询问的语言展示出来")
         .append_preamble("术语注解：Town Hall是主世界玩法；town_hall_level是大本营等级，又称大本等级；donations指的与捐赠部队有关的信息，玩家圈子俗称捐兵与收兵。对照表不要出现在结果里面")
