@@ -160,20 +160,18 @@ impl WxResponse {
                 let clan_info = account::coc_war_log(tag[1]).await;
                 wx_send_text.content = Some(clan_info);
             }
-            if msg.starts_with("ai#") {
-                let prompt = msg.split("#").collect::<Vec<&str>>();
-
+            if msg.starts_with("/") {
+                let prompt = msg.trim_start_matches('/');
                 let vec = app_state.messages.get_mut(&from_user_name);
-
                 let mut read_vec = if let Some(v) = vec {
                     v.clone()
                 } else {
                     Vec::new()
                 };
 
-                let content = ollama::agent_run(prompt[1], read_vec.clone()).await;
+                let content = ollama::agent_run(prompt, read_vec.clone()).await;
                 let content = if let Ok(text) = content {
-                    read_vec.push(Message::user(prompt[1]));
+                    read_vec.push(Message::user(prompt));
                     read_vec.push(Message::assistant(&text));
                     app_state.messages.insert(from_user_name, read_vec);
                     text
