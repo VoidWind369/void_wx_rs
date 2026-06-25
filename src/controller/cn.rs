@@ -1,14 +1,16 @@
+use axum::extract::State;
 use axum::http::HeaderMap;
-use axum::{response::IntoResponse, routing::*, Router};
+use axum::response::IntoResponse;
 use axum_serde::Xml;
+use rig::message::Message;
 
 use crate::agent::ollama;
 use crate::app::{account, Config, WxResponse, WxSendText};
-use crate::controller::sign;
+use crate::controller::AppState;
 use void_log::log_info;
 
 impl WxResponse {
-    async fn cn_start(self) -> WxSendText {
+    async fn cn_start(self, app_state: &mut AppState) -> WxSendText {
         let api = Config::get().await.api.unwrap_or_default();
         // a211f6ccb1d1339f3bf89506ddf90f90
         let from_user_name = self.clone().from_user_name.unwrap_or("none".to_string());
@@ -160,7 +162,17 @@ impl WxResponse {
             }
             if msg.starts_with("ai#") {
                 let prompt = msg.split("#").collect::<Vec<&str>>();
-                let content = ollama::agent_run(prompt.last().unwrap()).await;
+
+                let mut vec = app_state.messages.get_mut(&from_user_name).unwrap();
+                let content = ollama::agent_run(prompt[1], vec.clone()).await;
+                let content = if let Ok(text) = content {
+                    vec.push(Message::user(prompt[1]));
+                    vec.push(Message::assistant(&text));
+                    app_state.messages.insert(from_user_name, vec.to_vec());
+                    text
+                } else {
+                    "没有回答".to_string()
+                };
                 wx_send_text.content = Some(content);
             }
         }
@@ -168,33 +180,33 @@ impl WxResponse {
     }
 }
 
-async fn cn(header: HeaderMap, res: String) -> impl IntoResponse {
+pub async fn cn(
+    State(mut app_state): State<AppState>,
+    header: HeaderMap,
+    res: String,
+) -> impl IntoResponse {
     let content_type = header.get("content-type").unwrap();
     log_info!("{:?}", content_type);
     log_info!("{}", &res);
     let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
-    let wx_send_text = res.cn_start().await;
+    let wx_send_text = res.cn_start(&mut app_state).await;
     log_info!("{wx_send_text}");
     Xml(wx_send_text)
 }
 
-async fn cn_new(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+pub async fn cn_new(
+    State(mut app_state): State<AppState>,
+    Xml(res): Xml<WxResponse>,
+) -> impl IntoResponse {
     log_info!("{:?}", &res);
-    let wx_send_text = res.cn_start().await;
+    let wx_send_text = res.cn_start(&mut app_state).await;
     log_info!("{wx_send_text}");
     Xml(wx_send_text)
 }
 
-async fn cn_test(header: HeaderMap, Xml(res): Xml<WxResponse>) -> impl IntoResponse {
+pub async fn cn_test(header: HeaderMap, Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     let content_type = header.get("content-type").unwrap();
     log_info!("{:?}", content_type);
     log_info!("{:?}", &res);
     Xml(res)
-}
-
-pub async fn router(app_router: Router) -> Router {
-    app_router
-        .route("/cn", get(sign).post(cn))
-        .route("/cn_new", get(sign).post(cn_new))
-        .route("/cn_test", post(cn_test))
 }

@@ -1,6 +1,7 @@
 use rig::{
     client::{CompletionClient, Nothing},
-    completion::Prompt,
+    completion::Chat,
+    message::Message,
     providers::ollama::Client,
     tool::ToolError,
 };
@@ -33,7 +34,10 @@ async fn get_tag_info(tag: String) -> Result<serde_json::Value, ToolError> {
 }
 
 /// 查询智能体
-pub async fn agent_run(prompt: &str) -> String {
+pub async fn agent_run(
+    prompt: &str,
+    mut messages: Vec<Message>,
+) -> Result<String, rig::completion::PromptError> {
     log_info!("调用智能体");
     let config_agent = Config::get().await.get_agent();
     let client = Client::builder()
@@ -47,7 +51,8 @@ pub async fn agent_run(prompt: &str) -> String {
         .append_preamble("未指明语言时的一切回答必须为中文")
         .tool(GetTagInfo)
         .build();
-    agent.prompt(prompt).await.unwrap_or("没有答案".to_string())
+
+    agent.chat(prompt, &mut messages).await
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

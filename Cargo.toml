@@ -29,3 +29,4 @@ rust-crypto = "0.2.36"
 void_log = "0.1.2"
 rig = { version = "0.39.0", features = ["derive"] }
 rig-derive = "0.39.0"
+dashmap = { version = "6.2.1", features = ["raw-api", "serde"] }
