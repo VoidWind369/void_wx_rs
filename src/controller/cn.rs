@@ -169,20 +169,25 @@ async fn cn(header: HeaderMap, res: String) -> impl IntoResponse {
     let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
     let wx_send_text = res.cn_start().await;
     log_info!("{wx_send_text:?}");
-    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-        .replace("WxSendText", "xml")
-    // Xml(wx_send_text)
+    // let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    // xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+    //     .replace("WxSendText", "xml")
+    let mut headers = HeaderMap::new();
+    headers.append("content-type", "text/xml".parse().unwrap());
+    (headers, Xml(wx_send_text))
 }
 
 async fn cn_new(Xml(res): Xml<WxResponse>) -> impl IntoResponse {
     log_info!("{:?}", &res);
     let wx_send_text = res.cn_start().await;
     log_info!("{wx_send_text:?}");
-    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-        .replace("WxSendText", "xml")
-    // Xml(wx_send_text)
+    // let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
+    // xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+    //     .replace("WxSendText", "xml")
+
+    let mut headers = HeaderMap::new();
+    headers.append("content-type", "text/xml".parse().unwrap());
+    (headers, Xml(wx_send_text))
 }
 
 async fn cn_test(header: HeaderMap, Xml(res): Xml<WxResponse>) -> impl IntoResponse {
