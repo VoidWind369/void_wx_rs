@@ -3,7 +3,7 @@ use rig::{
     completion::{Chat, Prompt},
     message::Message,
     providers::ollama::Client,
-    tool::ToolError,
+    tool::{ToolDyn, ToolError},
 };
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncReadExt;
@@ -33,6 +33,10 @@ async fn get_tag_info(tag: String) -> Result<serde_json::Value, ToolError> {
     Ok(result)
 }
 
+fn boxed_tools() -> Vec<Box<dyn ToolDyn>> {
+    vec![Box::new(GetTagInfo)]
+}
+
 /// 查询智能体
 pub async fn agent_run(
     prompt: &str,
@@ -49,7 +53,7 @@ pub async fn agent_run(
         .agent(config_agent.model.unwrap_or("qwen3:0.6b".to_string()))
         .preamble(&Preamble::read().await.unwrap_or_default().0)
         .append_preamble("未指明语言时的一切回答必须为中文")
-        .tool(GetTagInfo)
+        .tools(boxed_tools())
         .build();
 
     agent.chat(prompt, &mut messages).await
