@@ -1,9 +1,11 @@
 use rig::{
-    client::{CompletionClient, Nothing, ProviderClient},
+    client::{CompletionClient, Nothing},
     completion::Prompt,
     providers::ollama::Client,
     tool::ToolError,
 };
+use serde::{Deserialize, Serialize};
+use tokio::io::AsyncReadExt;
 use void_log::log_info;
 
 use crate::app::Config;
@@ -39,12 +41,39 @@ pub async fn agent_run(prompt: &str) -> String {
         .base_url("http://localhost:11434")
         .build()
         .unwrap();
-    let agent = client.agent(config_agent.model.unwrap_or("qwen3:0.6b".to_string()))
-        .preamble("你现在是一个负责查询和整理游戏《部落冲突》的数据助理，你可以通过标签查询到部落冲突的游戏数据，你需要提取出用户问题中的3到10位数字与字母组成的标签进行查询，查询到的数据都是json格式，字段是英文的，当我以其他语言问你字段信息的时候，你需要将统计结果以询问的语言展示出来")
-        .append_preamble("术语注解：Town Hall是主世界玩法；town_hall_level是大本营等级，又称大本等级；donations指的与捐赠部队有关的信息，玩家圈子俗称捐兵与收兵。对照表不要出现在结果里面")
-        .append_preamble("数据整理需要包括部落名称，部落标签，部落首领标签和名称，部落位置及一些基础信息，大本营等级分布统计，联赛段位分布统计，不要展示非首领成员的信息，只关注部落情况")
+    let agent = client
+        .agent(config_agent.model.unwrap_or("qwen3:0.6b".to_string()))
+        .preamble(&Preamble::read().await.unwrap_or_default().0)
         .append_preamble("未指明语言时的一切回答必须为中文")
         .tool(GetTagInfo)
         .build();
     agent.prompt(prompt).await.unwrap_or("没有答案".to_string())
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+struct Preamble(String);
+
+impl Preamble {
+    async fn read() -> Option<Self> {
+        let mut file = if let Ok(f) = tokio::fs::File::open("preamble.json").await {
+            f
+        } else {
+            return None;
+        };
+        let mut json_str = String::new();
+        if file.read_to_string(&mut json_str).await.is_err() {
+            return None;
+        };
+        if let Ok(str) = serde_json::from_str(&json_str) {
+            Some(str)
+        } else {
+            None
+        }
+    }
+}
+
+#[tokio::test]
+async fn test() {
+    let a = Preamble::read().await.unwrap_or_default().0;
+    println!("{a}")
 }
