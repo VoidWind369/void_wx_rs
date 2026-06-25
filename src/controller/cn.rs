@@ -2,6 +2,7 @@ use axum::http::HeaderMap;
 use axum::{response::IntoResponse, routing::*, Router};
 use axum_serde::Xml;
 
+use crate::agent::ollama;
 use crate::app::{account, Config, WxResponse, WxSendText};
 use crate::controller::sign;
 use void_log::log_info;
@@ -156,6 +157,11 @@ impl WxResponse {
                 let tag = msg.split("#").collect::<Vec<&str>>();
                 let clan_info = account::coc_war_log(tag[1]).await;
                 wx_send_text.content = Some(clan_info);
+            }
+            if msg.starts_with("ai#") {
+                let prompt = msg.split("#").collect::<Vec<&str>>();
+                let content = ollama::agent_run(prompt.last().unwrap()).await;
+                wx_send_text.content = Some(content);
             }
         }
         wx_send_text

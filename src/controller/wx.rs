@@ -18,9 +18,6 @@ impl WxResponse {
                 msg_type: Some("text".to_string()),
                 content: Some(content),
             };
-
-            let content = ollama::agent_run(&msg).await;
-            wx_send_text.content = Some(content);
             // let api = Config::get().await.api.unwrap_or_default();
             // if msg.eq("时间") {
             //     let times = api.get_list_time().await;
