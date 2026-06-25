@@ -4,35 +4,39 @@ use axum::{response::IntoResponse, routing::*, Json, Router};
 use axum_serde::Xml;
 use void_log::log_info;
 
-async fn wx(res: String) -> impl IntoResponse {
-    let api = Config::get().await.api.unwrap_or_default();
-    log_info!("{:?}", res);
-    let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
-    let mut wx_send_text = WxSendText::new();
-    if let Some(msg) = res.content {
-        wx_send_text = WxSendText {
-            to_user_name: res.from_user_name,
-            from_user_name: res.to_user_name,
-            create_time: res.create_time,
-            msg_type: Some("text".to_string()),
-            content: Some("一个瑶瑶，两个瑶瑶。。。".to_string()),
-        };
-        if msg.eq("时间") {
-            let times = api.get_list_time().await;
-            let mut times_str = String::from("【时间集】");
-            for time in times {
-                let str = time.format_time().await;
-                times_str.push_str("\n");
-                times_str.push_str(&str)
+impl WxResponse {
+    async fn wx_start(self) -> WxSendText {
+        let api = Config::get().await.api.unwrap_or_default();
+        let mut wx_send_text = WxSendText::new();
+        if let Some(msg) = self.content {
+            wx_send_text = WxSendText {
+                to_user_name: self.from_user_name,
+                from_user_name: self.to_user_name,
+                create_time: self.create_time,
+                msg_type: Some("text".to_string()),
+                content: Some("一个瑶瑶，两个瑶瑶。。。".to_string()),
+            };
+            if msg.eq("时间") {
+                let times = api.get_list_time().await;
+                let mut times_str = String::from("【时间集】");
+                for time in times {
+                    let str = time.format_time().await;
+                    times_str.push_str("\n");
+                    times_str.push_str(&str)
+                }
+                wx_send_text.content = Some(times_str);
             }
-            wx_send_text.content = Some(times_str);
         }
+        wx_send_text
     }
-    log_info!("{wx_send_text:?}");
-    let xml = serde_xml_rs::to_string(&wx_send_text).unwrap();
-    xml.trim_start_matches("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-        .replace("WxSendText", "xml")
-    // Xml(wx_send_text)
+}
+
+async fn wx(res: String) -> impl IntoResponse {
+    log_info!("{}", res);
+    let res = serde_xml_rs::from_str::<WxResponse>(&res).unwrap();
+    let wx_send_text = res.wx_start().await;
+    log_info!("{wx_send_text}");
+    Xml(wx_send_text)
 }
 
 async fn create_menu() -> impl IntoResponse {

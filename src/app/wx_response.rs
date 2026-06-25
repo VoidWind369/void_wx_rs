@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::app::redis_util::{redis_get_access_token, redis_set_access_token};
 use crate::app::Config;
 use crypto::digest::Digest;
@@ -54,7 +56,7 @@ pub struct WxResponse {
     pub idx: Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 #[serde(rename = "xml")]
 pub struct WxSendText {
@@ -72,6 +74,20 @@ pub struct ResAccessToken {
     expires_in: Option<i64>,
     err_code: Option<String>,
     err_msg: Option<String>,
+}
+
+impl Display for WxSendText {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "- to_user_name: {}\n- from_user_name{}\n- create_time{}\n- msg_type{}\n- content{}",
+            self.to_user_name.clone().unwrap_or_default(),
+            self.from_user_name.clone().unwrap_or_default(),
+            self.create_time.clone().unwrap_or_default(),
+            self.msg_type.clone().unwrap_or_default(),
+            self.content.clone().unwrap_or_default()
+        )
+    }
 }
 
 impl WxSendText {
