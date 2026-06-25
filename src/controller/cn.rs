@@ -6,7 +6,7 @@ use rig::message::Message;
 
 use crate::agent::ollama;
 use crate::app::{account, Config, WxResponse, WxSendText};
-use crate::controller::AppState;
+use crate::controller::{sign, AppState};
 use void_log::log_info;
 
 impl WxResponse {
@@ -163,12 +163,19 @@ impl WxResponse {
             if msg.starts_with("ai#") {
                 let prompt = msg.split("#").collect::<Vec<&str>>();
 
-                let mut vec = app_state.messages.get_mut(&from_user_name).unwrap();
-                let content = ollama::agent_run(prompt[1], vec.clone()).await;
+                let vec = app_state.messages.get_mut(&from_user_name);
+
+                let mut read_vec = if let Some(v) = vec {
+                    v.clone()
+                } else {
+                    Vec::new()
+                };
+
+                let content = ollama::agent_run(prompt[1], read_vec.clone()).await;
                 let content = if let Ok(text) = content {
-                    vec.push(Message::user(prompt[1]));
-                    vec.push(Message::assistant(&text));
-                    app_state.messages.insert(from_user_name, vec.to_vec());
+                    read_vec.push(Message::user(prompt[1]));
+                    read_vec.push(Message::assistant(&text));
+                    app_state.messages.insert(from_user_name, read_vec);
                     text
                 } else {
                     "没有回答".to_string()

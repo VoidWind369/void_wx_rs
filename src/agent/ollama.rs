@@ -1,6 +1,6 @@
 use rig::{
     client::{CompletionClient, Nothing},
-    completion::Chat,
+    completion::{Chat, Prompt},
     message::Message,
     providers::ollama::Client,
     tool::ToolError,
