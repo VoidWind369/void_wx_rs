@@ -181,10 +181,10 @@ impl WxResponse {
 
                 let mut tags = content.split(',');
 
-                let mut text = "【部落信息】".to_string();
+                let mut text = "「部落信息」".to_string();
                 while let Some(tag) = tags.next() {
                     let clan_info = account::coc_clan_info(tag).await;
-                    text.push_str("\n");
+                    text.push_str("===================================\n");
                     text.push_str(&clan_info);
                 }
                 log_info!("{content}");
