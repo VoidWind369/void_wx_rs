@@ -1,6 +1,6 @@
 use rig::{
     client::{CompletionClient, Nothing},
-    completion::Chat,
+    completion::{Chat, Prompt},
     message::Message,
     providers::ollama::Client,
     tool::{ToolDyn, ToolError},
@@ -57,7 +57,7 @@ pub async fn agent_run(
         .max_tokens(4096)
         .build();
 
-    agent.chat(prompt, &mut messages).await
+    agent.prompt(prompt).await
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
