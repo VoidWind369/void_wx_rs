@@ -57,7 +57,7 @@ pub async fn agent_run(
         .max_tokens(4096)
         .build();
 
-    agent.prompt(prompt).await
+    agent.chat(prompt, &mut messages).await
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

@@ -178,6 +178,7 @@ impl WxResponse {
                 } else {
                     "没有回答".to_string()
                 };
+                log_info!("{content}");
                 wx_send_text.content = Some(content);
             }
         }
